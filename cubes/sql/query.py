@@ -1030,10 +1030,10 @@ class QueryContext(object):
 
         if native_time:
             lower = self._native_date_boundary_condition(dim, hierarchy, from_path, 0)
-            upper = self._native_date_boundary_condition(dim, hierarchy, to_path, 1)
+            upper = self._native_date_boundary_condition(dim, hierarchy, to_path, 1, False)
         else:
             lower = self._boundary_condition(dim, hierarchy, from_path, 0)
-            upper = self._boundary_condition(dim, hierarchy, to_path, 1)
+            upper = self._boundary_condition(dim, hierarchy, to_path, 1, False)
 
         conditions = []
         if lower is not None:
