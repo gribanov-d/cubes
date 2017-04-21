@@ -18,20 +18,20 @@ Star/snowflake schema query construction structures
 from __future__ import absolute_import
 
 import logging
+from collections import namedtuple
+from datetime import datetime
 
 import sqlalchemy as sa
 import sqlalchemy.sql as sql
+from sqlalchemy.sql import sqltypes
 from sqlalchemy.sql.expression import and_
-from sqlalchemy import func
 
-from collections import namedtuple
-from ..model import depsort_attributes, object_dict
-from ..errors import InternalError, ModelError, ArgumentError
+from .expressions import compile_attributes
 from .. import compat
 from ..browser import SPLIT_DIMENSION_NAME
 from ..cells import PointCut, SetCut, RangeCut
-
-from .expressions import compile_attributes
+from ..errors import InternalError, ModelError, ArgumentError
+from ..model import object_dict
 
 # Default label for all fact keys
 FACT_KEY_LABEL = '__fact_key__'
@@ -893,7 +893,8 @@ class QueryContext(object):
         bases = {attr: self.star_schema.column(attr) for attr in base_names}
         bases[FACT_KEY_LABEL] = self.star_schema.fact_key_column
 
-        self._columns = compile_attributes(bases, dependants, parameters, coalesce_measure, star_schema.label)
+        self._columns = compile_attributes(bases, dependants, parameters, coalesce_measure,
+                                           star_schema.label)
 
         self.label_attributes = {}
         if self.safe_labels:
@@ -992,7 +993,8 @@ class QueryContext(object):
                 condition = self.range_condition(str(cut.dimension),
                                                  hierarchy,
                                                  cut.from_path,
-                                                 cut.to_path, cut.invert, native_time=cut.dimension.native_time)
+                                                 cut.to_path, cut.invert,
+                                                 native_time=cut.dimension.native_time)
 
             else:
                 raise ArgumentError("Unknown cut type %s" % type(cut))
@@ -1080,7 +1082,15 @@ class QueryContext(object):
             operator = sql.operators.ge if first else sql.operators.gt
 
         column = self.column(levels[-1])
-        conditions.append(operator(column, path[-1]))
+
+        if isinstance(column.type, sqltypes.Integer):
+            value = int(path[-1])
+        elif isinstance(column.type, sqltypes.Float):
+            value = float(path[-1])
+        else:
+            value = path[-1]
+
+        conditions.append(operator(column, value))
         condition = sql.expression.and_(*conditions)
 
         if last is not None:
@@ -1116,7 +1126,9 @@ class QueryContext(object):
         while len(path) < 3:
             path.append('1')
 
-        value = func.date('-'.join(path))
+        value = datetime.fromtimestamp(0).replace(year=int(path[0]), month=int(path[1]),
+                                                  day=int(path[2])).date()
+
         conditions.append(operator(base_column, value))
         condition = sql.expression.and_(*conditions)
 
