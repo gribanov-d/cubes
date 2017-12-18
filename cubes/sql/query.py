@@ -1016,6 +1016,10 @@ class QueryContext(object):
         for level_key, value in zip(levels, path):
             # Prepare condition: dimension.level_key = path_value
             column = self.column(level_key)
+            if isinstance(column.type, sqltypes.Integer):
+                value = int(value)
+            elif isinstance(column.type, sqltypes.Float):
+                value = float(value)
             conditions.append(column == value)
 
         condition = sql.expression.and_(*conditions)
