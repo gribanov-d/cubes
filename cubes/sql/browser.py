@@ -348,7 +348,7 @@ class SQLBrowser(AggregationBrowser):
     def execute(self, statement, label=None):
         """Execute the `statement`, optionally log it. Returns the result
         cursor."""
-        # self._log_statement(statement, label)
+        self._log_statement(statement, label)
         return self.connectable.execute(statement)
 
     def provide_aggregate(self, cell, aggregates, drilldown, split, order,
