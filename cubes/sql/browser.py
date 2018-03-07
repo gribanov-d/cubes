@@ -594,7 +594,7 @@ class SQLBrowser(AggregationBrowser):
 
     def _log_statement(self, statement, label=None):
         label = "SQL(%s):" % label if label else "SQL:"
-        self.logger.debug("%s\n%s\n" % (label, str(statement.compile(compile_kwargs={"literal_binds": True}))))
+        self.logger.debug("%s %s" % (label, str(statement.compile(compile_kwargs={"literal_binds": True}))))
 
 
 class ResultIterator(object):
