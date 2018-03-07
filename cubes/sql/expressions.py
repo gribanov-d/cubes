@@ -134,7 +134,8 @@ def compile_attributes(bases, dependants, parameters, coalesce=None,
 
     for attr in dependants:
         if hasattr(attr, 'expression_custom_function') and attr.expression_custom_function:
-            context.add_function(attr.expression_custom_function)
+            for custom_func in attr.expression_custom_function.split(','):
+                context.add_function(custom_func.strip())
 
         # TODO: remove this hasattr with something nicer
         if hasattr(attr, "function") and attr.function:
